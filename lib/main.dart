@@ -1,122 +1,419 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const BMICalculatorApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class BMICalculatorApp extends StatelessWidget {
+  const BMICalculatorApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'BMI Calculator',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF0A0E21),
+          brightness: Brightness.dark,
+        ),
+        scaffoldBackgroundColor: const Color(0xFF0A0E21),
+        useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const BMICalculatorPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class BMICalculatorPage extends StatefulWidget {
+  const BMICalculatorPage({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<BMICalculatorPage> createState() => _BMICalculatorPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _BMICalculatorPageState extends State<BMICalculatorPage> {
+  bool isMale = true;
+  double height = 170;
+  int weight = 70;
+  int age = 25;
+  double? bmiResult;
+  String? bmiCategory;
+  Color? bmiColor;
 
-  void _incrementCounter() {
+  void calculateBMI() {
+    double heightInMeters = height / 100;
+    double bmi = weight / pow(heightInMeters, 2);
+
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      bmiResult = bmi;
+      if (bmi < 18.5) {
+        bmiCategory = 'Underweight';
+        bmiColor = Colors.blue;
+      } else if (bmi < 25) {
+        bmiCategory = 'Normal';
+        bmiColor = Colors.green;
+      } else if (bmi < 30) {
+        bmiCategory = 'Overweight';
+        bmiColor = Colors.orange;
+      } else {
+        bmiCategory = 'Obese';
+        bmiColor = Colors.red;
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text(
+          'BMI CALCULATOR',
+          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2),
+        ),
+        centerTitle: true,
+        backgroundColor: const Color(0xFF0A0E21),
+        elevation: 0,
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
+          children: [
+            // Gender Selection
+            Row(
+              children: [
+                Expanded(
+                  child: GenderCard(
+                    icon: Icons.male,
+                    label: 'MALE',
+                    isSelected: isMale,
+                    onTap: () => setState(() => isMale = true),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: GenderCard(
+                    icon: Icons.female,
+                    label: 'FEMALE',
+                    isSelected: !isMale,
+                    onTap: () => setState(() => isMale = false),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Height Slider
+            CustomCard(
+              child: Column(
+                children: [
+                  const Text(
+                    'HEIGHT',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        height.toStringAsFixed(0),
+                        style: const TextStyle(
+                          fontSize: 48,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Text(
+                        ' cm',
+                        style: TextStyle(fontSize: 18, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                  Slider(
+                    value: height,
+                    min: 100,
+                    max: 220,
+                    activeColor: const Color(0xFFEB1555),
+                    inactiveColor: Colors.grey.shade800,
+                    onChanged: (value) => setState(() => height = value),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Weight and Age
+            Row(
+              children: [
+                Expanded(
+                  child: CustomCard(
+                    child: Column(
+                      children: [
+                        const Text(
+                          'WEIGHT',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '$weight',
+                          style: const TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Text(
+                          'kg',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            RoundIconButton(
+                              icon: Icons.remove,
+                              onPressed: () {
+                                if (weight > 1) {
+                                  setState(() => weight--);
+                                }
+                              },
+                            ),
+                            const SizedBox(width: 16),
+                            RoundIconButton(
+                              icon: Icons.add,
+                              onPressed: () => setState(() => weight++),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: CustomCard(
+                    child: Column(
+                      children: [
+                        const Text(
+                          'AGE',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '$age',
+                          style: const TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Text(
+                          'years',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            RoundIconButton(
+                              icon: Icons.remove,
+                              onPressed: () {
+                                if (age > 1) {
+                                  setState(() => age--);
+                                }
+                              },
+                            ),
+                            const SizedBox(width: 16),
+                            RoundIconButton(
+                              icon: Icons.add,
+                              onPressed: () => setState(() => age++),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Calculate Button
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: calculateBMI,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFEB1555),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'CALCULATE BMI',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                  ),
+                ),
+              ),
+            ),
+
+            // Result Section
+            if (bmiResult != null) ...[
+              const SizedBox(height: 24),
+              CustomCard(
+                child: Column(
+                  children: [
+                    const Text(
+                      'YOUR RESULT',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      bmiCategory!,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: bmiColor,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      bmiResult!.toStringAsFixed(1),
+                      style: const TextStyle(
+                        fontSize: 72,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _getBMIDescription(),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getBMIDescription() {
+    if (bmiResult! < 18.5) {
+      return 'You have a lower than normal body weight. Consider consulting a nutritionist.';
+    } else if (bmiResult! < 25) {
+      return 'You have a normal body weight. Keep up the good work!';
+    } else if (bmiResult! < 30) {
+      return 'You have a higher than normal body weight. Try to exercise more.';
+    } else {
+      return 'You have a much higher than normal body weight. Consider consulting a doctor.';
+    }
+  }
+}
+
+// Custom Card Widget
+class CustomCard extends StatelessWidget {
+  final Widget child;
+
+  const CustomCard({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1D1E33),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: child,
+    );
+  }
+}
+
+// Gender Selection Card
+class GenderCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const GenderCard({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF1D1E33) : const Color(0xFF111328),
+          borderRadius: BorderRadius.circular(16),
+          border: isSelected
+              ? Border.all(color: const Color(0xFFEB1555), width: 2)
+              : null,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 72,
+              color: isSelected ? Colors.white : Colors.grey,
+            ),
+            const SizedBox(height: 12),
             Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+              label,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? Colors.white : Colors.grey,
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+// Round Button for increment/decrement
+class RoundIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const RoundIconButton({
+    super.key,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return RawMaterialButton(
+      onPressed: onPressed,
+      elevation: 0,
+      constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+      shape: const CircleBorder(),
+      fillColor: const Color(0xFF4C4F5E),
+      child: Icon(icon, color: Colors.white),
     );
   }
 }
